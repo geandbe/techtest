@@ -1,0 +1,38 @@
+﻿* {
+    font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+}
+
+.view {
+    display: block;
+
+}
+
+input[type="range"] {
+    width: 280px;
+}
+
+.ctrl {
+    display: inline-block;
+    width: 90px;
+    font-weight: bold;
+}
+
+.flash {
+    display: none;
+    font-style: italic;
+}
+
+path {
+    stroke: white; /*steelblue */
+    stroke-width: 3;
+    fill: none;
+}
+
+svg {
+    border-style:solid;
+    border-width:3px;
+    border-radius: 15px;
+    border-color: black;
+    background-color: #909090;
+}
+

@@ -1,47 +1,18 @@
 ﻿<!DOCTYPE XHTML5>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title>Vega Dynamic Data Test</title>
+    <title>Vega Dashboard</title>
     <script src="scripts/d3.v3.min.js"></script>
     <script src="scripts/vega.min.js"></script>
-    <style>
-        * {
-            font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
-        }
-
-        .view {
-            display: block;
-        }
-
-        input[type="range"] {
-            width: 280px;
-        }
-
-        .ctrl {
-            display: inline-block;
-            width: 90px;
-            font-weight: bold;
-        }
-
-        .flash {
-            display: none;
-            font-style: italic;
-        }
-
-        path {
-            stroke: steelblue;
-            stroke-width: 3;
-            fill: none;
-        }
-
-    </style>
+    <link href="css/styles.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
-    <div><strong>Vega Dynamic Data Test</strong></div>
-    <div>
+    <div style="width:720px; padding:10px; height:auto; border:3px solid black; border-radius: 25px; background: #808080; text-align:center; box-shadow: 10px 10px 5px #888">
+    <div><strong>Order Flow Dashboard</strong></div>
         <p>With "key" Property Definition (Uses Data Join)</p>
         <div id="view" class="view"></div>
     </div>
+    <br /><br /><br />
     <div>
         <span class="ctrl">Duration</span>
         0s
@@ -53,10 +24,12 @@
         <label id="alabel" for="animate">On</label>
     </div>
     <script type="text/javascript">
+        var w = 600;
+        var format = d3.format(",.2f");
         var spec = {
-            "width": 400,
-            "height": 200,
-            "padding": "auto",
+            "width": w,
+            "height": 350,
+            "padding": {"top":10,"bottom":110,"left":90,"right":10},
             "data": [{ "name": "table" }],
             "scales": [
               {
@@ -70,16 +43,23 @@
             ],
             "axes": [
               {
-                  "type": "x", "scale": "x", "title": "X axis", "grid": false, "properties": {
+                  "type": "x", "scale": "x", "title": "Order running total", "titleOffset": 100, "grid": true, "format": "$,.2f", "properties": {
                       "labels": {
                           "angle": { "value": -90 },
                           "align": { "value": "right" },
                           "baseline": { "value": "middle" },
                           "dx": { "value": -5 },
+                          "stroke": { "value": "white"}
                       }
                   }
               },
-              { "type": "y", "scale": "y", "title": "Y axis", "grid": false }
+              {
+                  "type": "y", "scale": "y", "title": "Mean order amount", "titleOffset": 80, "grid": true, "format": "$,.2f", "properties": {
+                      "labels": {
+                          "stroke": { "value": "white" }
+                      }
+                  }
+              }
             ],
             "marks": [
               {
@@ -88,7 +68,7 @@
                   "properties": {
                       "enter": {
                           "interpolate": { "value": "monotone" },
-                          "x": { "value": 400 },
+                          "x": { "value": w },
                           //"x": { "scale": "x", "field": "data.x" },
                           "y": { "scale": "y:prev", "field": "data.y" }//,
                           //"stroke": { "value": "steelblue" }
@@ -126,7 +106,8 @@
         var animate = true, dur = 1000;
 
         function timestep() {
-            id = (id % 100) + 1;
+            //id = (id % 100) + 1;
+            id = id + 100;
             table.shift();
             table.push({ x: id, y: ~~(100 * Math.random()) });
             self.view.data(data).update({ duration: animate ? dur : 0, ease: "linear" });
