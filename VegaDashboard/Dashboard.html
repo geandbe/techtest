@@ -1,0 +1,163 @@
+﻿<!DOCTYPE XHTML5>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Vega Dynamic Data Test</title>
+    <script src="scripts/d3.v3.min.js"></script>
+    <script src="scripts/vega.min.js"></script>
+    <style>
+        * {
+            font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+        }
+
+        .view {
+            display: block;
+        }
+
+        input[type="range"] {
+            width: 280px;
+        }
+
+        .ctrl {
+            display: inline-block;
+            width: 90px;
+            font-weight: bold;
+        }
+
+        .flash {
+            display: none;
+            font-style: italic;
+        }
+
+        path {
+            stroke: steelblue;
+            stroke-width: 3;
+            fill: none;
+        }
+
+    </style>
+</head>
+<body>
+    <div><strong>Vega Dynamic Data Test</strong></div>
+    <div>
+        <p>With "key" Property Definition (Uses Data Join)</p>
+        <div id="view" class="view"></div>
+    </div>
+    <div>
+        <span class="ctrl">Duration</span>
+        0s
+        <input id="timestep" type="range" min="0" max="1000" value="1000" />
+        1s
+        <br />
+        <span class="ctrl">Animation</span>
+        <input id="animate" type="checkbox" checked="checked" />
+        <label id="alabel" for="animate">On</label>
+    </div>
+    <script type="text/javascript">
+        var spec = {
+            "width": 400,
+            "height": 200,
+            "padding": "auto",
+            "data": [{ "name": "table" }],
+            "scales": [
+              {
+                  "name": "x", "type": "ordinal", "range": "width", "round": true,
+                  "domain": { "data": "table", "field": "data.x" }
+              },
+              {
+                  "name": "y", "range": "height", "nice": true, "round": true,
+                  "domain": { "data": "table", "field": "data.y" }
+              }
+            ],
+            "axes": [
+              {
+                  "type": "x", "scale": "x", "title": "X axis", "grid": false, "properties": {
+                      "labels": {
+                          "angle": { "value": -90 },
+                          "align": { "value": "right" },
+                          "baseline": { "value": "middle" },
+                          "dx": { "value": -5 },
+                      }
+                  }
+              },
+              { "type": "y", "scale": "y", "title": "Y axis", "grid": false }
+            ],
+            "marks": [
+              {
+                  "type": "line", "interpolate": "basis-closed",
+                  "from": { "data": "table" },
+                  "properties": {
+                      "enter": {
+                          "interpolate": { "value": "monotone" },
+                          "x": { "value": 400 },
+                          //"x": { "scale": "x", "field": "data.x" },
+                          "y": { "scale": "y:prev", "field": "data.y" }//,
+                          //"stroke": { "value": "steelblue" }
+                      },
+                      "update": {
+                          "x": { "scale": "x", "field": "data.x" },
+                          "y": { "scale": "y", "field": "data.y" },
+                      },
+                      "exit": {
+                          "x": { "value": 0 },
+                          "y": { "scale": "y", "field": "data.y" },
+                      }
+                  }
+              }
+            ]
+        };
+
+        spec.marks[0].key = "data.x"; // "key" property defined (uses data join)
+
+        var table = [
+          { "x": 1, "y": 28 }, { "x": 2, "y": 55 },
+          { "x": 3, "y": 43 }, { "x": 4, "y": 91 },
+          { "x": 5, "y": 81 }, { "x": 6, "y": 53 },
+          { "x": 7, "y": 19 }, { "x": 8, "y": 87 },
+          { "x": 9, "y": 52 }, { "x": 10, "y": 48 },
+          { "x": 11, "y": 24 }, { "x": 12, "y": 49 },
+          { "x": 13, "y": 87 }, { "x": 14, "y": 66 },
+          { "x": 15, "y": 17 }, { "x": 16, "y": 27 },
+          { "x": 17, "y": 68 }, { "x": 18, "y": 16 },
+          { "x": 19, "y": 49 }, { "x": 20, "y": 75 }
+        ];
+        var data = { table: table }, id = 20, timer = null;
+        //var renderer = "canvas";
+        var renderer = "svg";
+        var animate = true, dur = 1000;
+
+        function timestep() {
+            id = (id % 100) + 1;
+            table.shift();
+            table.push({ x: id, y: ~~(100 * Math.random()) });
+            self.view.data(data).update({ duration: animate ? dur : 0, ease: "linear" });
+        }
+
+        function run(step) {
+            console.log(step);
+            if (timer) clearInterval(timer);
+            timer = setInterval(timestep, step);
+        }
+
+        vg.parse.spec(spec, function (chart) {
+            self.view = chart({
+                el: "#view",
+                data: data,
+                renderer: renderer,
+                hover: true
+            }).update();
+        });
+
+        d3.select("#timestep").on("change", function () {
+            dur = +this.value;
+            run(dur + 100);
+            d3.select(".flash").style("display", dur == 0 ? "block" : "none");
+        });
+        d3.select("#animate").on("change", function () {
+            animate = this.checked;
+            d3.select("#alabel").text(animate ? "On" : "Off");
+        });
+        run(dur + 40);
+
+    </script>
+</body>
+</html>
