@@ -2,6 +2,21 @@
     font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
 }
 
+#total {
+    color: white;
+}
+
+#max {
+    color: white;
+}
+
+#avMin {
+    color: white;
+}
+#stdDev {
+    color: white;
+}
+
 .view {
     display: block;
 
