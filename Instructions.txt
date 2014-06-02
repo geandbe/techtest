@@ -1,0 +1,27 @@
+Blurocket – Technical Test
+
+Use Case: Displaying real time ticking data on management dashboards in a redundant manner.
+
+Requirement: 
+Given a stream of data (which you can assume is outside your control and which for the purposes of this test we assume to be individual orders) create a website that displays in near real time the following data derived from the stream:
+•	Running total of orders
+•	Average of orders over a minute period
+•	Standard Deviation of orders
+•	Maximum Order
+•	Ticking chart showing running total on one axis and average order value on the other
+
+Additional assumptions:
+•	It should be possible to restart IIS and the correct values should still be displayed when it comes up again (although the ticking chart can start with the incoming data).
+•	It should be possible to restart whatever service the website is getting its data from (or indeed it should be possible to restart any individual process involved in the solution and things should keep working)
+•	Assume that your initial set of processes starts before the stream starts
+•	Assume that the stream will come in hot and fast so that saving of current total to a database is not possible (the attached project can produce and consume 300,000+ messages per second on my machine).
+•	You can create whatever intermediary services, queues (or anything basically) that you feel are necessary and use any third party libraries you need (ideally only free or trial ones)
+•	The solution should be as generic as possible (so that it should be easy to run the service to handle different and multiple streams and it would return different metrics, so for example it might contain sales data and returns data)
+
+The stream of data to work with is provided by the windows forms project described below.
+
+The attached solution contains the following projects to assist:
+1.	Blurocket.TechTestShared: This project simple contains a shared class "DataItem" for passing data around.
+2.	Blurocket_TecTech: This is a windows forms app that produces the stream of data.  Note that the stream starts producing data at a rate of 1 message per second, but you can lower the throttling to whatever your machine can handle.  This app keeps its own running total, so you should be able to compare that to what the site displays.  This app publishes the messages using ZeroMQ.  If you fire up this app first it may clarify the requirements.  Once your solution is complete you should start this app and the results should start appearing on the website you created.
+3.	BlurocketTechTestConsumer: This is a simple console app that consumes messages produced by the windows app and writes out the running total every 100 messages (and which I included to save you the pain of figuring out consuming messages on ZeroMQ!).
+
