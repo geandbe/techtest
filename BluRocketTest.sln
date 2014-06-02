@@ -22,6 +22,13 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "VegaDashboard", "http://loc
 		SlnRelativePath = "VegaDashboard\"
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{D595AC13-0F97-46FD-8C8B-19846607B47F}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
