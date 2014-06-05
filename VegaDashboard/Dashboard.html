@@ -150,6 +150,7 @@
             };
 
             // Start the connection.
+            $.connection.hub.logging = false;
             $.connection.hub.start()
                 .done(function () { console.log("connected"); })
                 .fail(function () { console.log("cannot connect"); });
