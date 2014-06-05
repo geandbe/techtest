@@ -95,7 +95,6 @@
     <Compile Include="ViewHub.Startup.cs" />
     <Compile Include="ViewHubHost.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ViewTick.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
