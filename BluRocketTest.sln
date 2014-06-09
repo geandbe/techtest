@@ -42,6 +42,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlurocketTechTestConsumer",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ViewHubHost", "ViewHubHost\ViewHubHost.csproj", "{EBBAE57F-7D15-4DEA-A350-19F4CF7F8D07}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "redis", "redis", "{E4A59FE7-7745-4A83-9CD8-24837EB69357}"
+	ProjectSection(SolutionItems) = preProject
+		redis\redis-cli.exe = redis\redis-cli.exe
+		redis\redis-server.exe = redis\redis-server.exe
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
