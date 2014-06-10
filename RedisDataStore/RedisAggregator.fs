@@ -1,8 +1,8 @@
 ﻿namespace BlurocketTest
 
 open System
-open ServiceStack.Redis
-open ServiceStack.Redis.Generic
+open NServiceKit.Redis
+open NServiceKit.Redis.Generic
 open System.Collections.Generic
 open Blurocket.TechTestShared
     
