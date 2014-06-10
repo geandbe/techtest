@@ -110,10 +110,10 @@
           { "x": 17, "y": 0 }, { "x": 18, "y": 0 },
           { "x": 19, "y": 0 }, { "x": 20, "y": 0 }
         ];
-        var data = { table: table }, id = 20, timer = null;
+        var data = { table: table };
         
         var renderer = "svg"; //var renderer = "canvas"; for Vega native
-        var animate = false, dur = 1000;
+        var animate = false;
         var lastId = -1;
         function timestep(message) {
             if (lastId === message.LastId) {
@@ -124,7 +124,7 @@
                 $('#total').text((function (d) { return monetary(d) })(message.Total));
                 $('#max').text((function (d) { return monetary(d) })(message.Max));
                 $('#avMin').text((function (d) { return monetary(d) })(message.MeanLastMinute));
-                $('#stdDev').text((function (d) { return sci(d) })(Math.sqrt(message.Variance)));
+                $('#stdDev').text((function (d) { return monetary(d) })(Math.sqrt(message.Variance)));
                 table.shift();
                 table.push({ x: message.Total, y: message.MeanLastMinute });
                 self.view.data(data).update({ duration: 0, ease: "linear" });
