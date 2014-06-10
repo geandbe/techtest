@@ -48,6 +48,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "redis", "redis", "{E4A59FE7
 		redis\redis-server.exe = redis\redis-server.exe
 	EndProjectSection
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "RedisDataStore", "RedisDataStore\RedisDataStore.fsproj", "{2EEAE494-CA25-4C2C-AEF2-D9FBEF255D40}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -74,6 +76,10 @@ Global
 		{EBBAE57F-7D15-4DEA-A350-19F4CF7F8D07}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EBBAE57F-7D15-4DEA-A350-19F4CF7F8D07}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EBBAE57F-7D15-4DEA-A350-19F4CF7F8D07}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2EEAE494-CA25-4C2C-AEF2-D9FBEF255D40}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2EEAE494-CA25-4C2C-AEF2-D9FBEF255D40}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2EEAE494-CA25-4C2C-AEF2-D9FBEF255D40}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2EEAE494-CA25-4C2C-AEF2-D9FBEF255D40}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
