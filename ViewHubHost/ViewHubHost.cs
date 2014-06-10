@@ -4,6 +4,7 @@ using Microsoft.AspNet.SignalR;
 using Microsoft.Owin.Hosting;
 using Owin;
 using System.Reactive.Linq;
+using BlurocketTest;
 
 namespace ViewHubHost
 {
@@ -33,22 +34,33 @@ namespace ViewHubHost
                 var mark = Observable.Interval(TimeSpan.FromMilliseconds(100)).TimeInterval();
 
                 //using (mark.Subscribe(x => SendUpdate(x.Value.ToString())))
-                using (mark.Subscribe(x => { ticks++; SendUpdate(x.Value.ToString()); }))
+                using (DataStoreQuery.Client)
                 {
-                    Console.WriteLine("Press any key to unsubscribe");
-                    Console.ReadKey();
+                    using (mark.Subscribe(x => UpdateView()))
+                    {
+                        Console.WriteLine("Press any key to unsubscribe");
+                        Console.ReadKey();
+                    }
                 }
 
                 Console.WriteLine("Press any key to exit");
                 Console.ReadKey();
             }
         }
-        
+
+        /// <summary>
+        /// Performed on each refresh view tick
+        /// </summary>
+        public static void UpdateView()
+        {
+            SendUpdate(DataStoreQuery.GetCurrentAnalytics());
+        }
+
         /// <summary>
         /// Method to be called on clients
         /// </summary>
         /// <param name="msg">Value to be sent</param>
-        public static void SendUpdate(string msg)
+        public static void SendUpdate(RedisAggregator.Analytics msg)
         {
             var context = GlobalHost.ConnectionManager.GetHubContext<ViewHub>();
             context.Clients.All.AddMessage(msg);

@@ -11,7 +11,7 @@
         <div style="width: 620px; height: auto; padding:10px; border:3px solid black; border-radius: 15px; background: #909090; text-align:left; margin: 0 auto;">
             <table style="font-weight: bold; font-size: 14px">
                 <tr ><td>Running Total:</td><td id="total">0</td><td width="20%"></td><td>Maximal Order:</td><td id="max">0</td></tr>
-                <tr><td>Average Order per Minute:</td><td id="avMin">0</td><td width="20%"></td><td>Standard Deviation:</td><td id="stdDev">0</td></tr>
+                <tr><td>Average Order over Minute:</td><td id="avMin">0</td><td width="20%"></td><td>Standard Deviation:</td><td id="stdDev">0</td></tr>
             </table>
         </div>
         <br />
@@ -60,7 +60,7 @@
                   }
               },
               {
-                  "type": "y", "scale": "y", "title": "Mean order amount", "titleOffset": 80, "grid": true, "format": "$,.2f", "properties": {
+                  "type": "y", "scale": "y", "title": "Average order value over minute period", "titleOffset": 80, "grid": true, "format": "$,.2f", "properties": {
                       "labels": {
                           "stroke": { "value": "white" },
                           "fontSize": { "value": 12 },
@@ -114,16 +114,21 @@
         
         var renderer = "svg"; //var renderer = "canvas"; for Vega native
         var animate = false, dur = 1000;
-
-        function timestep() {
-            id = id + 100;
-            $('#total').text((function (d) { return monetary(d) })(id));
-            $('#max').text((function (d) { return monetary(d) })(id));
-            $('#avMin').text((function (d) { return monetary(d) })(id));
-            $('#stdDev').text((function (d) { return sci(d) })(id));
-            table.shift();
-            table.push({ x: id, y: ~~(100 * Math.random()) });
-            self.view.data(data).update({ duration: 0, ease: "linear" });
+        var lastId = -1;
+        function timestep(message) {
+            if (lastId === message.LastId) {
+                return;
+            }
+            else {
+                lastId = message.LastId;
+                $('#total').text((function (d) { return monetary(d) })(message.Total));
+                $('#max').text((function (d) { return monetary(d) })(message.Max));
+                $('#avMin').text((function (d) { return monetary(d) })(message.MeanLastMinute));
+                $('#stdDev').text((function (d) { return sci(d) })(Math.sqrt(message.Variance)));
+                table.shift();
+                table.push({ x: message.Total, y: message.MeanLastMinute });
+                self.view.data(data).update({ duration: 0, ease: "linear" });
+            }
         }
 
         vg.parse.spec(spec, function (chart) {
@@ -146,7 +151,7 @@
             // Create a function that the hub can call to broadcast messages.
             chat.client.AddMessage = function (message) {
                 //$('#message').val(message);
-                timestep();
+                timestep(message);
             };
 
             // Start the connection.
