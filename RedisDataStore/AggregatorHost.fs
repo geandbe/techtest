@@ -10,7 +10,7 @@ module AggregatorHost =
 
     [<EntryPoint>]
     let main argv =
-        let isForcedFlush = argv.[0].ToLowerInvariant().CompareTo("forcedflush") = 0
+        let isForcedFlush = argv.Length = 0 || argv.[0].ToLowerInvariant().CompareTo("forcedflush") = 0
         use disposable = DataStoreProcessor.Client
         DataStoreProcessor.InitAnalytics isForcedFlush
 
