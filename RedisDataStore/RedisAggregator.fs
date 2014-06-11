@@ -23,10 +23,13 @@ module RedisAggregator =
 
     type DataStoreUpdater private () =
         static let client = new RedisClient()
-        static let window = new List<DataItem>() 
+        static let window = new List<DataItem>()
+        static let mutable cache =  { LastId=0L; Total=0;  Max=0; Mean=0.0; Variance=0.0; MeanLastMinute=0.0}
                 
         static member Store = client
         static member MeanWindow = window
+        static member Cache with get() = cache
+                            and set(v) = cache <- v
 
         static member private FindMovingAverage (observation: DataItem) =
             let cutOff = observation.Created.AddSeconds(- windowMeanSeconds)
@@ -41,9 +44,11 @@ module RedisAggregator =
                 DataStoreUpdater.Store.Set<Analytics>("urn:blurocket:analytics", { LastId=0L; Total=0;  Max=0; Mean=0.0; Variance=0.0; MeanLastMinute=0.0}) |> ignore
             elif not (DataStoreUpdater.Store.ContainsKey "urn:blurocket:analytics") then
                 failwith ("Underlying Redis DataStore is uninitialized; rerun with forcedFlush argument")
+            // For both forced Flush and Restart
+            DataStoreUpdater.Cache <- DataStoreUpdater.Store.Get<Analytics> "urn:blurocket:analytics"
 
         static member Aggregate (dataItem: DataItem) =
-            let currentAnalytics = DataStoreUpdater.Store.Get<Analytics> "urn:blurocket:analytics"
+            let currentAnalytics = DataStoreUpdater.Cache
             if dataItem.MessageId <> currentAnalytics.LastId + 1L then
                 failwith (String.Format("Stream sequence mismatch: expected {0} vs. arrived {1}", currentAnalytics.LastId + 1L, dataItem.MessageId))
             
@@ -52,10 +57,12 @@ module RedisAggregator =
             let floatAmount = float dataItem.Amount in
             let delta = floatAmount - currentAnalytics.Mean in
             let newMean = currentAnalytics.Mean + delta / (float dataItem.MessageId) in
-            DataStoreUpdater.Store.Set<Analytics>("urn:blurocket:analytics", {
+                DataStoreUpdater.Cache <- {
                 LastId = dataItem.MessageId;
                 Total = currentAnalytics.Total + dataItem.Amount;
                 Max = max currentAnalytics.Max dataItem.Amount;
                 Mean = newMean;
                 Variance = currentAnalytics.Variance + delta*(floatAmount - newMean);
-                MeanLastMinute = DataStoreUpdater.FindMovingAverage dataItem }) |> ignore
+                MeanLastMinute = DataStoreUpdater.FindMovingAverage dataItem }
+            
+            DataStoreUpdater.Store.Set<Analytics>("urn:blurocket:analytics", DataStoreUpdater.Cache) |> ignore
