@@ -5,6 +5,9 @@ module AggregatorHost =
     open System.Threading
     open System.Text
     open ZMQ
+    open System.Reactive.Linq
+    open System.Reactive.Concurrency
+    open System.Reactive.PlatformServices
 
     open RedisAggregator
     open Blurocket.TechTestShared
@@ -21,11 +24,11 @@ module AggregatorHost =
             let objectData = socket.Recv()
             if objectData <> null then
                 let dataItem = SerializationHelper.DeserializeFromBinary<DataItem> objectData
-                if dataItem.MessageId % 100L = 0L then
-                    printfn "Data Item with Id %i has being received" dataItem.MessageId
+//                if dataItem.MessageId % 100L = 0L then
+//                    printfn "Data Item with Id %i has being received" dataItem.MessageId
                 DataStoreUpdater.Aggregate dataItem
-            let spinWait = new SpinWait()
-            spinWait.SpinOnce()
+//            let spinWait = new SpinWait()
+//            spinWait.SpinOnce()
             if Console.KeyAvailable then
                 match Console.ReadKey().Key with
                 | ConsoleKey.Q -> ()
@@ -38,7 +41,14 @@ module AggregatorHost =
         socket.Connect @"tcp://127.0.0.1:4567"
         socket.Subscribe("ORDERS", Encoding.Unicode)
 
+        // 25 frames per sec. is close to classic cinema 1/24
+        let persistFreqMs = 40.
+        let stopwatch = Observable.Interval(TimeSpan.FromMilliseconds(persistFreqMs), Scheduler.Default)
+        use handle = stopwatch.Subscribe(fun _ -> DataStoreUpdater.Persist())
         consumeDataTick()
+        // Provision here to persist last Cache!!!
+        DataStoreUpdater.Persist()
+
         0
 
 

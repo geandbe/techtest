@@ -25,6 +25,7 @@ module RedisAggregator =
         static let client = new RedisClient()
         static let window = new List<DataItem>()
         static let mutable cache =  { LastId=0L; Total=0;  Max=0; Mean=0.0; Variance=0.0; MeanLastMinute=0.0}
+        static let mutable lastPersisted = -1L
                 
         static member Store = client
         static member MeanWindow = window
@@ -46,6 +47,7 @@ module RedisAggregator =
                 failwith ("Underlying Redis DataStore is uninitialized; rerun with forcedFlush argument")
             // For both forced Flush and Restart
             DataStoreUpdater.Cache <- DataStoreUpdater.Store.Get<Analytics> "urn:blurocket:analytics"
+            lastPersisted <- DataStoreUpdater.Cache.LastId
 
         static member Aggregate (dataItem: DataItem) =
             let currentAnalytics = DataStoreUpdater.Cache
@@ -57,12 +59,17 @@ module RedisAggregator =
             let floatAmount = float dataItem.Amount in
             let delta = floatAmount - currentAnalytics.Mean in
             let newMean = currentAnalytics.Mean + delta / (float dataItem.MessageId) in
-                DataStoreUpdater.Cache <- {
+            DataStoreUpdater.Cache <- {
                 LastId = dataItem.MessageId;
                 Total = currentAnalytics.Total + dataItem.Amount;
                 Max = max currentAnalytics.Max dataItem.Amount;
                 Mean = newMean;
                 Variance = currentAnalytics.Variance + delta*(floatAmount - newMean);
                 MeanLastMinute = DataStoreUpdater.FindMovingAverage dataItem }
-            
-            DataStoreUpdater.Store.Set<Analytics>("urn:blurocket:analytics", DataStoreUpdater.Cache) |> ignore
+
+        static member Persist() =
+            if lastPersisted < DataStoreUpdater.Cache.LastId then
+                lastPersisted <- DataStoreUpdater.Cache.LastId
+                DataStoreUpdater.Store.Set<Analytics>("urn:blurocket:analytics", DataStoreUpdater.Cache) |> ignore
+                //Console.WriteLine("***Persisted: {0}", lastPersisted)
+                
