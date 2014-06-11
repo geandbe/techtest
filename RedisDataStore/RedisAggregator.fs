@@ -21,34 +21,29 @@ module RedisAggregator =
     let inline (>=.) x y = cmp x y >= 0
     let inline (<=.) x y = cmp x y <= 0
 
-    type DataStoreProcessor private () =
+    type DataStoreUpdater private () =
         static let client = new RedisClient()
-        static let dataItems = client.As<DataItem>()
-        static let window: IRedisList<DataItem> = dataItems.Lists.["urn:blurocket:meanWindow"]
+        static let window = new List<DataItem>() 
                 
-        static member Client = client
-        
+        static member Store = client
         static member MeanWindow = window
 
-        static member private MovingAverage (observation: DataItem) =
-            let oldWindow = window.GetAll()
+        static member private FindMovingAverage (observation: DataItem) =
             let cutOff = observation.Created.AddSeconds(- windowMeanSeconds)
-            let newWindow,toDelete = oldWindow |> List.ofSeq |> List.partition (fun x -> x.Created >. cutOff)
-            for i = 0 to (toDelete.Length - 1) do
-                window.Dequeue() |> ignore
-            window.Enqueue observation
-            observation::newWindow |> List.averageBy (fun x -> (float)x.Amount)
+            let firstToStay = DataStoreUpdater.MeanWindow.FindIndex(fun x -> x.Created >. cutOff) in
+                if firstToStay <> -1 then DataStoreUpdater.MeanWindow.RemoveRange(0, firstToStay)
+            DataStoreUpdater.MeanWindow.Add observation
+            DataStoreUpdater.MeanWindow |> List.ofSeq |> List.averageBy (fun x -> (float)x.Amount)
 
         static member InitAnalytics (forceFlush: bool) =
             if forceFlush then
-                DataStoreProcessor.Client.FlushAll()
-                DataStoreProcessor.Client.Set<Analytics>("urn:blurocket:analytics", { LastId=0L; Total=0;  Max=0; Mean=0.0; Variance=0.0; MeanLastMinute=0.0}) |> ignore
-                DataStoreProcessor.MeanWindow.Clear()
-            elif not (DataStoreProcessor.Client.ContainsKey "urn:blurocket:analytics" && DataStoreProcessor.MeanWindow.Count >= 0) then
+                DataStoreUpdater.Store.FlushAll()
+                DataStoreUpdater.Store.Set<Analytics>("urn:blurocket:analytics", { LastId=0L; Total=0;  Max=0; Mean=0.0; Variance=0.0; MeanLastMinute=0.0}) |> ignore
+            elif not (DataStoreUpdater.Store.ContainsKey "urn:blurocket:analytics") then
                 failwith ("Underlying Redis DataStore is uninitialized; rerun with forcedFlush argument")
 
-        static member ProcessDataItem (dataItem: DataItem) =
-            let currentAnalytics = DataStoreProcessor.Client.Get<Analytics> "urn:blurocket:analytics"
+        static member Aggregate (dataItem: DataItem) =
+            let currentAnalytics = DataStoreUpdater.Store.Get<Analytics> "urn:blurocket:analytics"
             if dataItem.MessageId <> currentAnalytics.LastId + 1L then
                 failwith (String.Format("Stream sequence mismatch: expected {0} vs. arrived {1}", currentAnalytics.LastId + 1L, dataItem.MessageId))
             
@@ -57,10 +52,10 @@ module RedisAggregator =
             let floatAmount = float dataItem.Amount in
             let delta = floatAmount - currentAnalytics.Mean in
             let newMean = currentAnalytics.Mean + delta / (float dataItem.MessageId) in
-            DataStoreProcessor.Client.Set<Analytics>("urn:blurocket:analytics", {
+            DataStoreUpdater.Store.Set<Analytics>("urn:blurocket:analytics", {
                 LastId = dataItem.MessageId;
                 Total = currentAnalytics.Total + dataItem.Amount;
                 Max = max currentAnalytics.Max dataItem.Amount;
                 Mean = newMean;
                 Variance = currentAnalytics.Variance + delta*(floatAmount - newMean);
-                MeanLastMinute = DataStoreProcessor.MovingAverage dataItem }) |> ignore
+                MeanLastMinute = DataStoreUpdater.FindMovingAverage dataItem }) |> ignore
