@@ -36,6 +36,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DAC18F49-B4AB-4382-BE60-E67E5E7FBF95}"
 	ProjectSection(SolutionItems) = preProject
 		Instructions.txt = Instructions.txt
+		Startup.txt = Startup.txt
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlurocketTechTestConsumer", "BlurocketTechTestConsumer\BlurocketTechTestConsumer.csproj", "{4AA1844D-6358-439F-85FE-D9A49448016F}"
