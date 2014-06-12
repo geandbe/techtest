@@ -1,9 +1,19 @@
 RUNNING THE TEST
 
-1. After cloning from Git build the solution to deliver required libraries via nuget
-2. From folder 'redis' on solution level shoot-up persistent store with redis-server.exe
-3. Start ViewHubHost.exe that queries persistent store and view Dashboard.html from VegaDashboard web site,
-	press any key in ViewHubHost window to start-up SignalR
-4. Start RedisDataStore.exe (no parameters or forceFlush in command line flushes Redis, otherwise (any other string) the state will be restored)
-5. Start Winform app order stream simulator from Blurocket_TecTest
-6. Play
+1. After cloning from Git open BlurocketTest solution and build the solution, this step also delivers required libraries via nuget
+
+2. Open the solution property page -> Common Properties -> Startup Project, click Multiple startup projects radiobutton and make Start
+   (or Start without debugging) selection wrom Action dropdown lists for the following Projects:
+   Blurocket_TecTest, RedisDataStore, VegaDashboard, ViewHubHost; make sure Dashboard.html is set as Startup page for VegaDashboard site
+   (VS features these settings in .suo Solution settings file excluded from Git tracking)
+
+3. Open folder 'redis' on Solution level hierarchy and start persistent store by double-clicking redis-server.exe; also may be useful to
+   track for some time redis operations performed by the solution by double-clicking redis-cli.exe and then entering monitor command
+   into opened window
+4. Push any key in ViewHubHost.exe window start-up SignalR
+
+5. Start Winform order stream simulator from Blurocket_TecTest and play with components
+
+6. RedisDataStore.exe allows 2 start-up modes: 
+   - no parameters or forceFlush in command line flushes state, persisted in Redis
+   - otherwise (any other string in command line) restores persisted state
