@@ -8,9 +8,7 @@ open Blurocket.TechTestShared
     
 module RedisAggregator =
 
-    [<CLIMutable>]
-    type Analytics = { LastId: int64; Total: int;  Max: int; Mean: double; Variance: double; MeanLastMinute: double}
-
+    [<Literal>] // Hardcoded for simplicity
     let windowMeanSeconds = 60.
 
     // Avoid boxing when comparing DateTimes
@@ -20,6 +18,12 @@ module RedisAggregator =
     let inline (<.) x y = cmp x y < 0
     let inline (>=.) x y = cmp x y >= 0
     let inline (<=.) x y = cmp x y <= 0
+    
+    //TODO: { LastId: int64; Total: int;  Max: int; WindowMean: double; WindowVariance: double}
+    // type DataItemMod = { Created: DateTime; AmountMod: double }
+    [<CLIMutable>]
+    type Analytics = { LastId: int64; Total: int;  Max: int; Mean: double; Variance: double; MeanLastMinute: double}
+    
 
     type DataStoreUpdater private () =
         static let client = new RedisClient()
@@ -32,6 +36,13 @@ module RedisAggregator =
         static member Cache with get() = cache
                             and set(v) = cache <- v
 
+        //TODO: Minimize number of value conversions to float
+        // Tightest loop here - as Variance must be window variance move calculations fully here:
+        // let inline convert (observation: DataItem) : DataItemMod = { Created = observation.Created; AmountMod = double observation.Amount }
+        // static member private FindRunningStats (observation: DataItem) =
+        //      ...
+        //      DataStoreUpdater.MeanWindow.Add (convert observation) 
+        //      http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#On-line_algorithm
         static member private FindMovingAverage (observation: DataItem) =
             let cutOff = observation.Created.AddSeconds(- windowMeanSeconds)
             let firstToStay = DataStoreUpdater.MeanWindow.FindIndex(fun x -> x.Created >. cutOff) in
@@ -70,6 +81,7 @@ module RedisAggregator =
         static member Persist() =
             if lastPersisted < DataStoreUpdater.Cache.LastId then
                 lastPersisted <- DataStoreUpdater.Cache.LastId
+                // !!!!!!!!!!!!!!!!!!!!!!!!! Calculate running stats only for persisted points, otherwise just keep window !!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 DataStoreUpdater.Store.Set<Analytics>("urn:blurocket:analytics", DataStoreUpdater.Cache) |> ignore
                 //Console.WriteLine("***Persisted: {0}", lastPersisted)
                 

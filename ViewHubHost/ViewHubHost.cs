@@ -12,7 +12,6 @@ namespace ViewHubHost
     {
         static void Main(string[] args)
         {
-            int ticks = 0;
             // This will *ONLY* bind to localhost, if you want to bind to all addresses
             // use http://*:8080 to bind to all addresses. 
             // See http://msdn.microsoft.com/en-us/library/system.net.httplistener.aspx 
@@ -22,7 +21,7 @@ namespace ViewHubHost
             Console.CancelKeyPress += (object sender, ConsoleCancelEventArgs e) =>
             {
                 e.Cancel = true;
-                Console.WriteLine("Ticks passed: {0}", ticks);
+                Console.WriteLine("Last DataItem Id Persisted: {0}", DataStoreQuery.GetCurrentAnalytics().LastId);
             };
 
 
@@ -31,9 +30,9 @@ namespace ViewHubHost
                 Console.WriteLine("SignalR ViewHub is running on {0}; press any key to continue...", url);
                 Console.ReadKey();
 
+                //TODO: Instead of Rx time interval-driven polling switch to Redis PubSub event-driven 
                 var mark = Observable.Interval(TimeSpan.FromMilliseconds(100)).TimeInterval();
 
-                //using (mark.Subscribe(x => SendUpdate(x.Value.ToString())))
                 using (DataStoreQuery.Client)
                 {
                     using (mark.Subscribe(x => UpdateView()))
@@ -65,6 +64,8 @@ namespace ViewHubHost
             var context = GlobalHost.ConnectionManager.GetHubContext<ViewHub>();
             context.Clients.All.AddMessage(msg);
         }
+
+        //TODO: Segregate Max update into separate SignalR function...
 
     }
 
