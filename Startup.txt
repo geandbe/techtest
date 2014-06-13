@@ -10,6 +10,7 @@ RUNNING THE TEST
 3. Open folder 'redis' on Solution level hierarchy and start persistent store by double-clicking redis-server.exe; also may be useful to
    track for some time redis operations performed by the solution by double-clicking redis-cli.exe and then entering monitor command
    into opened window
+
 4. Push any key in ViewHubHost.exe window start-up SignalR
 
 5. Start Winform order stream simulator from Blurocket_TecTest and play with components

@@ -123,10 +123,10 @@
                 lastId = message.LastId;
                 $('#total').text((function (d) { return monetary(d) })(message.Total));
                 $('#max').text((function (d) { return monetary(d) })(message.Max));
-                $('#avMin').text((function (d) { return monetary(d) })(message.MeanLastMinute));
-                $('#stdDev').text((function (d) { return monetary(d) })(Math.sqrt(message.Variance)));
+                $('#avMin').text((function (d) { return monetary(d) })(message.WindowMean));
+                $('#stdDev').text((function (d) { return monetary(d) })(Math.sqrt(message.WindowStdDev)));
                 table.shift();
-                table.push({ x: message.Total, y: message.MeanLastMinute });
+                table.push({ x: message.Total, y: message.WindowMean });
                 self.view.data(data).update({ duration: 0, ease: "linear" });
             }
         }
@@ -157,8 +157,8 @@
             // Start the connection.
             $.connection.hub.logging = false;
             $.connection.hub.start()
-                .done(function () { console.log("connected"); })
-                .fail(function () { console.log("cannot connect"); });
+                .done(function () { console.log("connected to hub"); })
+                .fail(function () { console.log("failed connecting to hub"); });
         });
     </script>
 </body>
