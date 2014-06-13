@@ -115,7 +115,12 @@
         var renderer = "svg"; //var renderer = "canvas"; for Vega native
         var animate = false;
         var lastId = -1;
+
         function timestep(message) {
+            if (message === null) { // may happend with rough component restarts - just ignore
+                return;
+            }
+
             if (lastId === message.LastId) {
                 return;
             }
