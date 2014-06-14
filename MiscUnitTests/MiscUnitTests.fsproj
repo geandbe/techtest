@@ -60,6 +60,7 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DateTimeComparer.Tests.fs" />
     <Compile Include="GenericListSlicer.Tests.fs" />
     <None Include="App.config" />
     <None Include="MSTest.runsettings" />

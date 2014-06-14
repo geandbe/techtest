@@ -7,8 +7,9 @@ open System.Collections.Generic
 
 [<TestClass>]
 type GenericListSlicerTests() =
-    let mutable ll: List<RedisAggregator.DataItemProc> = null 
-    member val TestContext: TestContext = null with get,set
+    let mutable ll = Unchecked.defaultof<List<RedisAggregator.DataItemProc>> 
+    
+    member val TestContext = Unchecked.defaultof<TestContext> with get,set
 
     [<TestInitialize>]
     member x.TestInit() =
@@ -63,4 +64,4 @@ type GenericListSlicerTests() =
 
     [<TestCleanup>]
     member x.TestCleanup() =
-        ll <- null
+        ll <- Unchecked.defaultof<List<RedisAggregator.DataItemProc>>

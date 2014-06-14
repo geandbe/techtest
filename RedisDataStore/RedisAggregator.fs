@@ -11,6 +11,16 @@ open MathNet.Numerics.Statistics
 open Blurocket.TechTestShared
 
 [<AutoOpen>]
+module Helpers =
+    // Avoid boxing when comparing DateTimes
+    let inline cmp<'a when 'a :> IComparable<'a>> (x:'a) (y:'a) = x.CompareTo y
+    let inline (=.) x y = cmp x y = 0
+    let inline (>.) x y = cmp x y > 0
+    let inline (<.) x y = cmp x y < 0
+    let inline (>=.) x y = cmp x y >= 0
+    let inline (<=.) x y = cmp x y <= 0
+
+[<AutoOpen>]
 module RedisAggregator =
 
     [<CLIMutable>]
@@ -24,13 +34,7 @@ module RedisAggregator =
 
     let zeroState = { LastId=0L; Total=0;  Max=0; WindowMean=0.0; WindowStdDev=0.0 }
 
-    // Avoid boxing when comparing DateTimes
-    let inline cmp<'a when 'a :> IComparable<'a>> (x:'a) (y:'a) = x.CompareTo y
-    let inline (=.) x y = cmp x y = 0
-    let inline (>.) x y = cmp x y > 0
-    let inline (<.) x y = cmp x y < 0
-    let inline (>=.) x y = cmp x y >= 0
-    let inline (<=.) x y = cmp x y <= 0
+
     
     // Avoid costly type conversions in tight loop
     let inline intern (observation: DataItem) : DataItemProc = { Created = observation.Created; AmountMod = double observation.Amount }
