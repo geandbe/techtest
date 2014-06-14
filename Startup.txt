@@ -1,20 +1,20 @@
-RUNNING THE TEST
+DEPLOYING RUNNING THE TEST SOLUTION:
 
-1. After cloning from Git open BlurocketTest solution and build the solution, this step also delivers required libraries via nuget
+1. After cloning from Git open BlurocketTest solution and build the solution. This step also delivers required 3rd party libraries via nuget
 
 2. Open the solution property page -> Common Properties -> Startup Project, click Multiple startup projects radiobutton and make Start
-   (or Start without debugging) selection wrom Action dropdown lists for the following Projects:
-   Blurocket_TecTest, RedisDataStore, VegaDashboard, ViewHubHost; make sure Dashboard.html is set as Startup page for VegaDashboard site
-   (VS features these settings in .suo Solution settings file excluded from Git tracking)
+   (or Start without debugging) selection from Action dropdown lists for the following projects:
+   Blurocket_TecTest, RedisDataStore, VegaDashboard, ViewHubHost; also make sure Dashboard.html is set as Startup page for VegaDashboard site
+   (VS keeps tidbits listed above in .suo Solution settings file that is excluded from Git tracking)
 
-3. Open folder 'redis' on Solution level hierarchy and start persistent store by double-clicking redis-server.exe; also may be useful to
-   track for some time redis operations performed by the solution by double-clicking redis-cli.exe and then entering monitor command
-   into opened window
+3. Open folder 'redis' on Solution level hierarchy and fire up persistent store by double-clicking "redis-server.exe"; also it may make sense to
+   track at some time redis operations performed by the solution by double-clicking redis-cli.exe and then entering "monitor" command
+   into redis-cli window
 
 4. Push any key in ViewHubHost.exe window to kick-off SignalR
 
 5. Start Winform order stream simulator from Blurocket_TecTest and play with components
 
 6. RedisDataStore.exe allows 2 start-up modes: 
-   - no parameters or forceFlush in command line flushes state, persisted in Redis
-   - otherwise (any other string in command line) restores persisted state
+   - no parameters or "forceFlush" given in command line resets data store state to be persisted by Redis
+   - otherwise (any other string given in command line) it assumes restoring previously persisted state
