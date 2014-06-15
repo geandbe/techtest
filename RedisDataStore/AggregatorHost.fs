@@ -13,7 +13,7 @@ open Blurocket.TechTestShared
 
 [<EntryPoint>]
 let main argv =
-    use __ = DataStoreUpdater.Handle
+    use __ = EventStoreUpdater.Handle
     use context = new ZMQ.Context()
     use socket = context.Socket ZMQ.SocketType.SUB
 
@@ -22,7 +22,7 @@ let main argv =
         let topic = socket.Recv(Encoding.Unicode)
         let objectData = socket.Recv()
         if objectData <> null then
-            SerializationHelper.DeserializeFromBinary<DataItem> objectData |> DataStoreUpdater.Append
+            SerializationHelper.DeserializeFromBinary<DataItem> objectData |> EventStoreUpdater.Append
         let spinWait = new SpinWait() // give others some breath
         spinWait.SpinOnce()
         if Console.KeyAvailable then
@@ -32,7 +32,7 @@ let main argv =
         else
             consumeDataItem()
 
-    DataStoreUpdater.InitAnalytics (argv.Length = 0 || argv.[0].ToLower().CompareTo("forcedflush") = 0)
+    EventStoreUpdater.InitAnalytics (argv.Length = 0 || argv.[0].ToLower().CompareTo("forcedflush") = 0)
     printfn "Subscribing to 0MQ ORDERS stream... Press 'Q' to Quit"
     socket.Connect @"tcp://127.0.0.1:4567"
     socket.Subscribe("ORDERS", Encoding.Unicode)
@@ -40,10 +40,10 @@ let main argv =
     // 25 frames per sec. is close to classic cinema 1/24
     let aggregateFreqMsec = 40.
     let stopwatch = Observable.Interval(TimeSpan.FromMilliseconds(aggregateFreqMsec), Scheduler.Default)
-    use handle = stopwatch.Subscribe(fun _ -> DataStoreUpdater.Aggregate())
+    use handle = stopwatch.Subscribe(fun _ -> EventStoreUpdater.Aggregate())
     consumeDataItem()
     // Last chance aggregation before exit with a hope to restart
-    DataStoreUpdater.Aggregate()
+    EventStoreUpdater.Aggregate()
 
     0
 

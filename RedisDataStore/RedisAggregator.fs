@@ -29,6 +29,9 @@ module RedisAggregator =
     [<CLIMutable>]
     type Analytics = { LastId: int64; Total: int; WindowMean: double; WindowStdDev: double; }
 
+    [<CLIMutable>]
+    type Max = { Max: int; }
+
     [<Literal>] // Hardcoded for simplicity
     let meanWindowWidthSeconds = 60.
 
@@ -39,14 +42,16 @@ module RedisAggregator =
     
     let monitor = new Object() // sync data window access over this lock from Rx-driven and main threads
 
-    type DataStoreUpdater private () =
+    type EventStoreUpdater private () =
         static let client = new RedisClient()
+        static let eventQueue = client.As<IDictionary<String, Object>>().Lists.["urn:events"]
         static let window = new List<DataItemProc>()
         static let mutable cache =  zeroState
         static let mutable max =  0
         static let mutable lastPersisted = -1L
                 
         static member Handle = client
+        static member EventQueue = eventQueue
         static member MeanWindow = window
         static member Max with get() = max // keeps max amount have being persisted into Redis
                             and set(v) = max <- v
@@ -68,66 +73,70 @@ module RedisAggregator =
             //
             // However, it came out using MathNet.Numerics library is substantially superior performance-wise, so the above was dropped
 
-            // time pivot btw potentially expired window items and more recent ones
-            let cutOff = DataStoreUpdater.MeanWindow.[idxLast].Created.AddSeconds(- meanWindowWidthSeconds)
-            let firstToStay = DataStoreUpdater.MeanWindow.FindIndex(fun x -> x.Created >. cutOff)
+            // time pivot between potentially expired window items and more recent ones
+            let cutOff = EventStoreUpdater.MeanWindow.[idxLast].Created.AddSeconds(- meanWindowWidthSeconds)
+            let firstToStay = EventStoreUpdater.MeanWindow.FindIndex(fun x -> x.Created >. cutOff)
             // always exists at least one such item, hence firstToStay <> -1 is invariant
             let result =
                 if firstToStay = idxLast then
-                    (DataStoreUpdater.MeanWindow.[idxLast].AmountMod, 0.0) // (Mean, StdDev) for single element window
+                    (EventStoreUpdater.MeanWindow.[idxLast].AmountMod, 0.0) // (Mean, StdDev) for single element window
                 elif firstToStay > idxLast then
                     failwith "Wrong state of MeanWindow" // kinda Assertion, should NEVER happend!
                 else // firstToStay < idxLast
-                    let ds = DescriptiveStatistics(DataStoreUpdater.MeanWindow.[firstToStay..idxLast].ConvertAll(fun x -> x.AmountMod)) in
+                    let ds = DescriptiveStatistics(EventStoreUpdater.MeanWindow.[firstToStay..idxLast].ConvertAll(fun x -> x.AmountMod)) in
                     (ds.Mean, ds.StandardDeviation)
             if firstToStay > 0 then // indicates a range of one or more expired observations exists near left 
-                lock monitor (fun () -> DataStoreUpdater.MeanWindow.RemoveRange(0, firstToStay))    
+                lock monitor (fun () -> EventStoreUpdater.MeanWindow.RemoveRange(0, firstToStay))    
             result
                 
         static member InitAnalytics forceFlush =
             if forceFlush then
-                DataStoreUpdater.Handle.FlushAll()
-                DataStoreUpdater.Handle.Set<int>("urn:blurocket:max", 0) |> ignore
-                DataStoreUpdater.Handle.Set<Analytics>("urn:blurocket:analytics", zeroState) |> ignore
-            elif not (DataStoreUpdater.Handle.ContainsKey "urn:blurocket:analytics") then
+                EventStoreUpdater.Handle.FlushAll()
+                EventStoreUpdater.Handle.Set<int>("urn:blurocket:max", 0) |> ignore
+                let eventSetMax = new Dictionary<String,Object>() in eventSetMax.Add("max", { Max = 0 })
+                EventStoreUpdater.EventQueue.Enqueue (eventSetMax)
+                EventStoreUpdater.Handle.Set<Analytics>("urn:blurocket:analytics", zeroState) |> ignore
+                let eventSetAnalytics = new Dictionary<String,Object>() in eventSetAnalytics.Add("analytics", zeroState)
+                EventStoreUpdater.EventQueue.Enqueue (eventSetAnalytics)
+            elif not (EventStoreUpdater.Handle.ContainsKey "urn:blurocket:analytics") then
                 failwith ("Underlying Redis DataStore is uninitialized; rerun with forcedFlush argument")
             // For both forced Flush and Restart recover last persisted cache
-            DataStoreUpdater.Max <- DataStoreUpdater.Handle.Get<int> "urn:blurocket:max"
-            DataStoreUpdater.Cache <- DataStoreUpdater.Handle.Get<Analytics> "urn:blurocket:analytics"
-            lastPersisted <- DataStoreUpdater.Cache.LastId
+            EventStoreUpdater.Max <- EventStoreUpdater.Handle.Get<int> "urn:blurocket:max"
+            EventStoreUpdater.Cache <- EventStoreUpdater.Handle.Get<Analytics> "urn:blurocket:analytics"
+            lastPersisted <- EventStoreUpdater.Cache.LastId
 
         static member Append (nextOrder: DataItem) = // happens on each data item arrival
-            //Console.WriteLine("Append order {0} to window of {1} length", nextOrder.MessageId, DataStoreUpdater.MeanWindow.Count);
-            if nextOrder.MessageId <> DataStoreUpdater.Cache.LastId + 1L then // ensure we do not miss pieces of data stream
-                failwith (String.Format("Stream sequence mismatch: expected {0} vs. arrived {1}", DataStoreUpdater.Cache.LastId + 1L, nextOrder.MessageId))
+            if nextOrder.MessageId <> EventStoreUpdater.Cache.LastId + 1L then // ensure we do not miss pieces of data stream
+                failwith (String.Format("Stream sequence mismatch: expected {0} vs. arrived {1}", EventStoreUpdater.Cache.LastId + 1L, nextOrder.MessageId))
 
-            lock monitor (fun() -> DataStoreUpdater.MeanWindow.Add (intern nextOrder))
+            lock monitor (fun() -> EventStoreUpdater.MeanWindow.Add (intern nextOrder))
             
-            if nextOrder.Amount > DataStoreUpdater.Max then
-                DataStoreUpdater.Max <- nextOrder.Amount
-                DataStoreUpdater.Handle.Set<int>("urn:blurocket:max", nextOrder.Amount) |> ignore
-                //TODO: Signal Max Change !!!
-                ()
+            if nextOrder.Amount > EventStoreUpdater.Max then
+                EventStoreUpdater.Max <- nextOrder.Amount
+                EventStoreUpdater.Handle.Set<int>("urn:blurocket:max", nextOrder.Amount) |> ignore
+                let eventSetMax = new Dictionary<String,Object>() in eventSetMax.Add("max", { Max = nextOrder.Amount })
+                EventStoreUpdater.EventQueue.Enqueue (eventSetMax)
 
-            DataStoreUpdater.Cache <- {
-                DataStoreUpdater.Cache with
+            EventStoreUpdater.Cache <- {
+                EventStoreUpdater.Cache with
                     LastId = nextOrder.MessageId;
-                    Total = DataStoreUpdater.Cache.Total + nextOrder.Amount; }
+                    Total = EventStoreUpdater.Cache.Total + nextOrder.Amount; }
         
         static member Aggregate() = // happens with a frequency suitable for UI
             let lastIdx = ref 0
             let cacheCopy = ref zeroState
 
-            if lastPersisted < DataStoreUpdater.Cache.LastId then
+            if lastPersisted < EventStoreUpdater.Cache.LastId then
                 lock monitor (fun () ->
-                            cacheCopy :=  DataStoreUpdater.Cache
-                            lastIdx := DataStoreUpdater.MeanWindow.Count - 1)
-                //Console.WriteLine("Aggregate lastPersisted Id {0} vs Cache.LastId {1}", lastPersisted, DataStoreUpdater.Cache.LastId);
-                lastPersisted <- DataStoreUpdater.Cache.LastId
+                            cacheCopy :=  EventStoreUpdater.Cache
+                            lastIdx := EventStoreUpdater.MeanWindow.Count - 1)
+
+                lastPersisted <- EventStoreUpdater.Cache.LastId
                 match !lastIdx with
                 | _ when !lastIdx < 0 -> () // Empty mean window, zilch to aggregate
-                | _ -> let mean, stddev = DataStoreUpdater.Statistics !lastIdx
+                | _ -> let mean, stddev = EventStoreUpdater.Statistics !lastIdx
                        cacheCopy := { !cacheCopy  with WindowMean=mean; WindowStdDev=stddev }
-                DataStoreUpdater.Handle.Set<Analytics>("urn:blurocket:analytics", !cacheCopy) |> ignore
-                //TODO: Signal Analytics Change
+                EventStoreUpdater.Handle.Set<Analytics>("urn:blurocket:analytics", !cacheCopy) |> ignore
+                let eventSetAnalytics = new Dictionary<String,Object>() in eventSetAnalytics.Add("analytics", !cacheCopy)
+                EventStoreUpdater.EventQueue.Enqueue (eventSetAnalytics)
                 
