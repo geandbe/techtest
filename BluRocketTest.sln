@@ -41,7 +41,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlurocketTechTestConsumer", "BlurocketTechTestConsumer\BlurocketTechTestConsumer.csproj", "{4AA1844D-6358-439F-85FE-D9A49448016F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ViewHubHost", "ViewHubHost\ViewHubHost.csproj", "{EBBAE57F-7D15-4DEA-A350-19F4CF7F8D07}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedisEventStore.Query", "ViewHubHost\RedisEventStore.Query.csproj", "{EBBAE57F-7D15-4DEA-A350-19F4CF7F8D07}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "redis", "redis", "{E4A59FE7-7745-4A83-9CD8-24837EB69357}"
 	ProjectSection(SolutionItems) = preProject
@@ -49,7 +49,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "redis", "redis", "{E4A59FE7
 		redis\redis-server.exe = redis\redis-server.exe
 	EndProjectSection
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "RedisDataStore", "RedisDataStore\RedisDataStore.fsproj", "{2EEAE494-CA25-4C2C-AEF2-D9FBEF255D40}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "RedisEventStore.Command", "RedisDataStore\RedisEventStore.Command.fsproj", "{2EEAE494-CA25-4C2C-AEF2-D9FBEF255D40}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MiscUnitTests", "MiscUnitTests\MiscUnitTests.fsproj", "{A07297E2-93C8-4E72-A4C7-71D4F5A47B86}"
 EndProject

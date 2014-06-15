@@ -66,8 +66,8 @@
     <None Include="MSTest.runsettings" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\RedisDataStore\RedisDataStore.fsproj">
-      <Name>RedisDataStore</Name>
+    <ProjectReference Include="..\RedisDataStore\RedisEventStore.Command.fsproj">
+      <Name>RedisEventStore.Command</Name>
       <Project>{2eeae494-ca25-4c2c-aef2-d9fbef255d40}</Project>
       <Private>True</Private>
     </ProjectReference>
