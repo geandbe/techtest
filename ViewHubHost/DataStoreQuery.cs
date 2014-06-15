@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using NServiceKit.Redis;
-using NServiceKit.Redis.Generic;
+using ServiceStack.Redis;
+using ServiceStack.Redis.Generic;
 using Blurocket.TechTestShared;
 using BlurocketTest;
 

@@ -2,8 +2,8 @@
 
 open System
 open System.Threading
-open NServiceKit.Redis
-open NServiceKit.Redis.Generic
+open ServiceStack.Redis
+open ServiceStack.Redis.Generic
 open System.Collections.Generic
 open MathNet.Numerics
 open MathNet.Numerics.Statistics 

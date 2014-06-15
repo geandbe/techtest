@@ -20,3 +20,9 @@ DEPLOYING RUNNING THE TEST SOLUTION:
 7. RedisDataStore.exe allows 2 start-up modes: 
    - no parameters or "forceFlush" given in command line resets data store state to be persisted by Redis
    - otherwise (any other string given in command line) it assumes restoring previously persisted state
+
+Note: Current version of ServiceStack 4.x turned to commercial product limiting free use to 6000 transactions per hour. Falling back to
+free ServiceStack V3 is possible only via Package Manager Console using:
+PM> Install-Package ServiceStack.Text -Version 3.9.11
+PM> Install-Package ServiceStack.Common -Version 3.9.11
+PM> Install-Package ServiceStack.Redis -Version 3.9.11
