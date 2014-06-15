@@ -11,10 +11,12 @@ DEPLOYING RUNNING THE TEST SOLUTION:
    track at some time redis operations performed by the solution by double-clicking redis-cli.exe and then entering "monitor" command
    into redis-cli window
 
-4. Push any key in ViewHubHost.exe window to kick-off SignalR
+4. Start all components with VS Start
 
-5. Start Winform order stream simulator from Blurocket_TecTest and play with components
+5. Push any key in ViewHubHost.exe window to kick-off SignalR
 
-6. RedisDataStore.exe allows 2 start-up modes: 
+6. Activate Winform order stream simulator from Blurocket_TecTest and adjust data flow
+
+7. RedisDataStore.exe allows 2 start-up modes: 
    - no parameters or "forceFlush" given in command line resets data store state to be persisted by Redis
    - otherwise (any other string given in command line) it assumes restoring previously persisted state

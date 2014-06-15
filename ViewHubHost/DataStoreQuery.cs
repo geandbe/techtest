@@ -25,5 +25,10 @@ namespace ViewHubHost
         {
             return  DataStoreQuery.Client.Get<RedisAggregator.Analytics>("urn:blurocket:analytics");
         }
+
+        public static int GetCurrentMax()
+        {
+            return DataStoreQuery.Client.Get<int>("urn:blurocket:max");
+        }
     }
 }

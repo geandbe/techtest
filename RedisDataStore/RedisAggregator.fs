@@ -27,14 +27,12 @@ module RedisAggregator =
     type DataItemProc = { Created: DateTime; AmountMod: double } // sliding window item type
 
     [<CLIMutable>]
-    type Analytics = { LastId: int64; Total: int;  Max: int; WindowMean: double; WindowStdDev: double; }
+    type Analytics = { LastId: int64; Total: int; WindowMean: double; WindowStdDev: double; }
 
     [<Literal>] // Hardcoded for simplicity
     let meanWindowWidthSeconds = 60.
 
-    let zeroState = { LastId=0L; Total=0;  Max=0; WindowMean=0.0; WindowStdDev=0.0 }
-
-
+    let zeroState = { LastId=0L; Total=0; WindowMean=0.0; WindowStdDev=0.0 }
     
     // Avoid costly type conversions in tight loop
     let inline intern (observation: DataItem) : DataItemProc = { Created = observation.Created; AmountMod = double observation.Amount }
@@ -45,10 +43,13 @@ module RedisAggregator =
         static let client = new RedisClient()
         static let window = new List<DataItemProc>()
         static let mutable cache =  zeroState
+        static let mutable max =  0
         static let mutable lastPersisted = -1L
                 
         static member Handle = client
         static member MeanWindow = window
+        static member Max with get() = max // keeps max amount have being persisted into Redis
+                            and set(v) = max <- v
         static member Cache with get() = cache // keeps analytics have being persisted into Redis
                             and set(v) = cache <- v
 
@@ -86,10 +87,12 @@ module RedisAggregator =
         static member InitAnalytics forceFlush =
             if forceFlush then
                 DataStoreUpdater.Handle.FlushAll()
+                DataStoreUpdater.Handle.Set<int>("urn:blurocket:max", 0) |> ignore
                 DataStoreUpdater.Handle.Set<Analytics>("urn:blurocket:analytics", zeroState) |> ignore
             elif not (DataStoreUpdater.Handle.ContainsKey "urn:blurocket:analytics") then
                 failwith ("Underlying Redis DataStore is uninitialized; rerun with forcedFlush argument")
             // For both forced Flush and Restart recover last persisted cache
+            DataStoreUpdater.Max <- DataStoreUpdater.Handle.Get<int> "urn:blurocket:max"
             DataStoreUpdater.Cache <- DataStoreUpdater.Handle.Get<Analytics> "urn:blurocket:analytics"
             lastPersisted <- DataStoreUpdater.Cache.LastId
 
@@ -100,15 +103,16 @@ module RedisAggregator =
 
             lock monitor (fun() -> DataStoreUpdater.MeanWindow.Add (intern nextOrder))
             
-            if nextOrder.Amount > DataStoreUpdater.Cache.Max then
-                //!!! Signal Max Change !!!
+            if nextOrder.Amount > DataStoreUpdater.Max then
+                DataStoreUpdater.Max <- nextOrder.Amount
+                DataStoreUpdater.Handle.Set<int>("urn:blurocket:max", nextOrder.Amount) |> ignore
+                //TODO: Signal Max Change !!!
                 ()
 
             DataStoreUpdater.Cache <- {
                 DataStoreUpdater.Cache with
                     LastId = nextOrder.MessageId;
-                    Total = DataStoreUpdater.Cache.Total + nextOrder.Amount;
-                    Max = max DataStoreUpdater.Cache.Max nextOrder.Amount; }
+                    Total = DataStoreUpdater.Cache.Total + nextOrder.Amount; }
         
         static member Aggregate() = // happens with a frequency suitable for UI
             let lastIdx = ref 0
@@ -125,5 +129,5 @@ module RedisAggregator =
                 | _ -> let mean, stddev = DataStoreUpdater.Statistics !lastIdx
                        cacheCopy := { !cacheCopy  with WindowMean=mean; WindowStdDev=stddev }
                 DataStoreUpdater.Handle.Set<Analytics>("urn:blurocket:analytics", !cacheCopy) |> ignore
-                //Console.WriteLine("***Persisted: {0}", lastPersisted)
+                //TODO: Signal Analytics Change
                 

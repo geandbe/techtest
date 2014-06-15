@@ -116,23 +116,33 @@
         var animate = false;
         var lastId = -1;
 
-        function timestep(message) {
-            if (message === null) { // may happend with rough component restarts - just ignore
+        // Changes everything, but Max view
+        function changeAnalytics(analytics) {
+            if (analytics === null) { // may happend with rough component restarts - just ignore
                 return;
             }
 
-            if (lastId === message.LastId) {
+            if (lastId === analytics.LastId) {
                 return;
             }
             else {
-                lastId = message.LastId;
-                $('#total').text((function (d) { return monetary(d) })(message.Total));
-                $('#max').text((function (d) { return monetary(d) })(message.Max));
-                $('#avMin').text((function (d) { return monetary(d) })(message.WindowMean));
-                $('#stdDev').text((function (d) { return monetary(d) })(Math.sqrt(message.WindowStdDev)));
+                lastId = analytics.LastId;
+                $('#total').text((function (d) { return monetary(d) })(analytics.Total));
+                $('#avMin').text((function (d) { return monetary(d) })(analytics.WindowMean));
+                $('#stdDev').text((function (d) { return monetary(d) })(analytics.WindowStdDev));
                 table.shift();
-                table.push({ x: message.Total, y: message.WindowMean });
+                table.push({ x: analytics.Total, y: analytics.WindowMean });
                 self.view.data(data).update({ duration: 0, ease: "linear" });
+            }
+        }
+
+        // Changes just Max view
+        function changeMax(orderMax) {
+            if (orderMax === null) {
+                return;
+            }
+            else {
+                $('#max').text((function (d) { return monetary(d) })(orderMax));
             }
         }
 
@@ -151,12 +161,16 @@
             $.connection.hub.url = "http://localhost:8080/signalr";
 
             // Declare a proxy to reference the hub.
-            var chat = $.connection.viewHub;
+            var proxy = $.connection.viewHub;
 
-            // Create a function that the hub can call to broadcast messages.
-            chat.client.AddMessage = function (message) {
-                //$('#message').val(message);
-                timestep(message);
+            // Update data frame analytics
+            proxy.client.UpdateAnalytics = function (analytics) {
+                changeAnalytics(analytics);
+            };
+
+            // Update global Max view
+            proxy.client.UpdateMax = function (orderMax) {
+                changeMax(orderMax);
             };
 
             // Start the connection.

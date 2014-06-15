@@ -53,19 +53,20 @@ namespace ViewHubHost
         public static void UpdateView()
         {
             SendUpdate(DataStoreQuery.GetCurrentAnalytics());
+            SendUpdate(DataStoreQuery.GetCurrentMax());
         }
 
-        /// <summary>
-        /// Method to be called on clients
-        /// </summary>
-        /// <param name="msg">Value to be sent</param>
-        public static void SendUpdate(RedisAggregator.Analytics msg)
+        public static void SendUpdate(RedisAggregator.Analytics newAnalytics)
         {
             var context = GlobalHost.ConnectionManager.GetHubContext<ViewHub>();
-            context.Clients.All.AddMessage(msg);
+            context.Clients.All.UpdateAnalytics(newAnalytics);
         }
 
-        //TODO: Segregate Max update into separate SignalR function...
+        public static void SendUpdate(int newMax)
+        {
+            var context = GlobalHost.ConnectionManager.GetHubContext<ViewHub>();
+            context.Clients.All.UpdateMax(newMax);
+        }
 
     }
 
