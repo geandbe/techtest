@@ -3,7 +3,6 @@ using System;
 using Microsoft.AspNet.SignalR;
 using Microsoft.Owin.Hosting;
 using Owin;
-using System.Reactive.Linq;
 using BlurocketTest;
 
 namespace ViewHubHost
@@ -21,24 +20,35 @@ namespace ViewHubHost
             Console.CancelKeyPress += (object sender, ConsoleCancelEventArgs e) =>
             {
                 e.Cancel = true;
-                Console.WriteLine("Last DataItem Id Persisted: {0}", DataStoreQuery.GetCurrentAnalytics().LastId);
+                Console.WriteLine("Last DataItem Id Persisted: {0}", EventStoreQuery.GetCurrentAnalytics().LastId);
             };
 
 
             using (WebApp.Start(url))
             {
-                Console.WriteLine("SignalR ViewHub is running on {0}; press any key to continue...", url);
-                Console.ReadKey();
+                Console.WriteLine("SignalR ViewHub is running on {0}", url);
 
-                //TODO: Instead of Rx time interval-driven polling switch to Redis PubSub event-driven 
-                var mark = Observable.Interval(TimeSpan.FromMilliseconds(100)).TimeInterval();
-
-                using (DataStoreQuery.Client)
+                using (EventStoreQuery.Client)
                 {
-                    using (mark.Subscribe(x => UpdateView()))
+                    var typedClient = EventStoreQuery.Client.As<string>();
+                    var eventQueue = typedClient.Lists["urn:blurocket:events"];
+                    bool run = true;
+                    while (run)
                     {
-                        Console.WriteLine("Press any key to unsubscribe");
-                        Console.ReadKey();
+                        switch (typedClient.BlockingDequeueItemFromList(eventQueue, null))
+                        {
+                            case "analytics":
+                                UpdateView(EventStoreQuery.GetCurrentAnalytics());
+                                break;
+                            case "max":
+                                UpdateMax(EventStoreQuery.GetCurrentMax());
+                                break;
+                            case "stop":
+                                run = false;
+                                break;
+                            default:
+                                throw new InvalidOperationException(String.Format("Unknown EventStore descriptor"));
+                        }
                     }
                 }
 
@@ -47,22 +57,14 @@ namespace ViewHubHost
             }
         }
 
-        /// <summary>
-        /// Performed on each refresh view tick
-        /// </summary>
-        public static void UpdateView()
-        {
-            SendUpdate(DataStoreQuery.GetCurrentAnalytics());
-            SendUpdate(DataStoreQuery.GetCurrentMax());
-        }
 
-        public static void SendUpdate(RedisAggregator.Analytics newAnalytics)
+        private static void UpdateView(RedisAggregator.Analytics newAnalytics)
         {
             var context = GlobalHost.ConnectionManager.GetHubContext<ViewHub>();
             context.Clients.All.UpdateAnalytics(newAnalytics);
         }
 
-        public static void SendUpdate(int newMax)
+        private static void UpdateMax(int newMax)
         {
             var context = GlobalHost.ConnectionManager.GetHubContext<ViewHub>();
             context.Clients.All.UpdateMax(newMax);

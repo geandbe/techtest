@@ -44,7 +44,7 @@ module RedisAggregator =
 
     type EventStoreUpdater private () =
         static let client = new RedisClient()
-        static let eventQueue = client.As<IDictionary<String, Object>>().Lists.["urn:events"]
+        static let eventQueue = client.As<string>().Lists.["urn:blurocket:events"]
         static let window = new List<DataItemProc>()
         static let mutable cache =  zeroState
         static let mutable max =  0
@@ -93,11 +93,9 @@ module RedisAggregator =
             if forceFlush then
                 EventStoreUpdater.Handle.FlushAll()
                 EventStoreUpdater.Handle.Set<int>("urn:blurocket:max", 0) |> ignore
-                let eventSetMax = new Dictionary<String,Object>() in eventSetMax.Add("max", { Max = 0 })
-                EventStoreUpdater.EventQueue.Enqueue (eventSetMax)
+                EventStoreUpdater.EventQueue.Enqueue ("max")
                 EventStoreUpdater.Handle.Set<Analytics>("urn:blurocket:analytics", zeroState) |> ignore
-                let eventSetAnalytics = new Dictionary<String,Object>() in eventSetAnalytics.Add("analytics", zeroState)
-                EventStoreUpdater.EventQueue.Enqueue (eventSetAnalytics)
+                EventStoreUpdater.EventQueue.Enqueue ("analytics")
             elif not (EventStoreUpdater.Handle.ContainsKey "urn:blurocket:analytics") then
                 failwith ("Underlying Redis DataStore is uninitialized; rerun with forcedFlush argument")
             // For both forced Flush and Restart recover last persisted cache
@@ -114,8 +112,7 @@ module RedisAggregator =
             if nextOrder.Amount > EventStoreUpdater.Max then
                 EventStoreUpdater.Max <- nextOrder.Amount
                 EventStoreUpdater.Handle.Set<int>("urn:blurocket:max", nextOrder.Amount) |> ignore
-                let eventSetMax = new Dictionary<String,Object>() in eventSetMax.Add("max", { Max = nextOrder.Amount })
-                EventStoreUpdater.EventQueue.Enqueue (eventSetMax)
+                EventStoreUpdater.EventQueue.Enqueue ("max")
 
             EventStoreUpdater.Cache <- {
                 EventStoreUpdater.Cache with
@@ -138,5 +135,5 @@ module RedisAggregator =
                        cacheCopy := { !cacheCopy  with WindowMean=mean; WindowStdDev=stddev }
                 EventStoreUpdater.Handle.Set<Analytics>("urn:blurocket:analytics", !cacheCopy) |> ignore
                 let eventSetAnalytics = new Dictionary<String,Object>() in eventSetAnalytics.Add("analytics", !cacheCopy)
-                EventStoreUpdater.EventQueue.Enqueue (eventSetAnalytics)
+                EventStoreUpdater.EventQueue.Enqueue ("analytics")
                 
