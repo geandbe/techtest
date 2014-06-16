@@ -1,9 +1,10 @@
-﻿namespace BlurocketTest
+﻿namespace UnitTestProject1
 
 open System
 open Microsoft.VisualStudio.TestTools.UnitTesting
 
 open System.Collections.Generic
+open BlurocketTest
 
 [<TestClass>]
 type GenericListSlicerTests() =

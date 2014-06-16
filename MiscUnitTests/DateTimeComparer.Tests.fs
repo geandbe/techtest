@@ -1,7 +1,9 @@
-﻿namespace BlurocketTest
+﻿namespace UnitTestProject1
 
 open System
 open Microsoft.VisualStudio.TestTools.UnitTesting
+
+open BlurocketTest
 
 [<TestClass>]
 type DateTimeComparerTests() =

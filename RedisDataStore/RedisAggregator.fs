@@ -11,16 +11,6 @@ open MathNet.Numerics.Statistics
 open Blurocket.TechTestShared
 
 [<AutoOpen>]
-module Helpers =
-    // Avoid boxing when comparing DateTimes
-    let inline cmp<'a when 'a :> IComparable<'a>> (x:'a) (y:'a) = x.CompareTo y
-    let inline (=.) x y = cmp x y = 0
-    let inline (>.) x y = cmp x y > 0
-    let inline (<.) x y = cmp x y < 0
-    let inline (>=.) x y = cmp x y >= 0
-    let inline (<=.) x y = cmp x y <= 0
-
-[<AutoOpen>]
 module RedisAggregator =
 
     [<CLIMutable>]
