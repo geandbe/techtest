@@ -17,20 +17,18 @@ let main argv =
     use context = new ZMQ.Context()
     use socket = context.Socket ZMQ.SocketType.SUB
 
-    // for now - just dumb sync queue read in a tight loop
+    // for now - just a dumb sync queue read in a tight loop
     let rec consumeDataItem() : unit =
         let topic = socket.Recv(Encoding.Unicode)
         let objectData = socket.Recv()
         if objectData <> null then
             SerializationHelper.DeserializeFromBinary<DataItem> objectData |> EventStoreUpdater.Append
-        let spinWait = new SpinWait() // give others some breath
-        spinWait.SpinOnce()
-        if Console.KeyAvailable then
-            match Console.ReadKey().Key with
-            | ConsoleKey.Q -> ()
-            | _ -> consumeDataItem()
-        else
-            consumeDataItem()
+        //if Console.KeyAvailable then
+        //    match Console.ReadKey().Key with
+        //    | ConsoleKey.Q -> ()
+        //    | _ -> consumeDataItem()
+        //else
+        consumeDataItem()
 
     EventStoreUpdater.InitAnalytics (argv.Length = 0 || argv.[0].ToLower().CompareTo("forcedflush") = 0)
     printfn "Subscribing to 0MQ ORDERS stream... Press 'Q' to Quit"
