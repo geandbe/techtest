@@ -34,10 +34,14 @@ module Kick_In =
     let main argv =
         let hostUrl = @"http://localhost:8080"
         use app = WebApp.Start(hostUrl,startup)
-        printfn "SignalR F# ViewHub is running on %s" hostUrl
         use redisClient = new RedisClient()
         let typedClient = redisClient.As<String>()
         let eventQ = typedClient.Lists.["urn:blurocket:events"]
+        printfn "Press a key to continue..."
+        Console.ReadLine() |> ignore
+        printfn "SignalR F# ViewHub is running on %s" hostUrl
+        updateM (redisClient.Get<int> "urn:blurocket:max") // for restart
+
         while true do
            match (typedClient.BlockingDequeueItemFromList(eventQ, Nullable())) with
            | "analytics" -> updateA (redisClient.Get<Analytics> "urn:blurocket:analytics")

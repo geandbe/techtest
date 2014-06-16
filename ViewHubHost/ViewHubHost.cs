@@ -26,14 +26,17 @@ namespace ViewHubHost
 
             using (WebApp.Start(url))
             {
-                Console.WriteLine("SignalR ViewHub is running on {0}", url);
 
                 using (EventStoreQuery.Client)
                 {
                     var typedClient = EventStoreQuery.Client.As<string>();
                     var eventQueue = typedClient.Lists["urn:blurocket:events"];
-                    bool run = true;
-                    while (run)
+                    Console.WriteLine("Press a key to continue...");
+                    Console.ReadLine();
+                    Console.WriteLine("SignalR ViewHub is running on {0}", url);
+                    UpdateMax(EventStoreQuery.GetCurrentMax()); // for restart
+
+                    while (true)
                     {
                         switch (typedClient.BlockingDequeueItemFromList(eventQueue, null))
                         {
@@ -42,9 +45,6 @@ namespace ViewHubHost
                                 break;
                             case "max":
                                 UpdateMax(EventStoreQuery.GetCurrentMax());
-                                break;
-                            case "stop":
-                                run = false;
                                 break;
                             default:
                                 throw new InvalidOperationException(String.Format("Unknown EventStore descriptor"));
