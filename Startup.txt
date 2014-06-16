@@ -4,7 +4,12 @@ DEPLOYING RUNNING THE TEST SOLUTION:
 
 2. Open the solution property page -> Common Properties -> Startup Project, click Multiple startup projects radiobutton and make Start
    (or Start without debugging) selection from Action dropdown lists for the following projects:
-   Blurocket_TecTest, RedisEventStore.Command, VegaDashboard, RedisEventStore.Query; also make sure Dashboard.html is set as Startup page for VegaDashboard site
+   - Blurocket_TecTest,
+   - RedisEventStore.Command,
+   - VegaDashboard,
+   - RedisEventStore.Query.FS for F#-implemented SignalR Hub or - RedisEventStore.Query for the same C#-implemented
+   
+   Also make sure Dashboard.html is set as Startup page for VegaDashboard site
    (VS keeps tidbits listed above in .suo Solution settings file that is excluded from Git tracking)
 
 3. Open folder 'redis' on Solution level hierarchy and fire up persistent store by double-clicking "redis-server.exe"; also it may make sense to
@@ -24,4 +29,5 @@ free ServiceStack V3 is possible only via Package Manager Console using:
 PM> Install-Package ServiceStack.Text -Version 3.9.11
 PM> Install-Package ServiceStack.Common -Version 3.9.11
 PM> Install-Package ServiceStack.Redis -Version 3.9.11
-The solution captures this subtlety.
+
+The solution accounts for this subtlety, but upgrading Redis to the latest version will make solution non-fit for the purpose

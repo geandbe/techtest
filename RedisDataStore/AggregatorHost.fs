@@ -31,7 +31,7 @@ let main argv =
         consumeDataItem()
 
     EventStoreUpdater.InitAnalytics (argv.Length = 0 || argv.[0].ToLower().CompareTo("forcedflush") = 0)
-    printfn "Subscribing to 0MQ ORDERS stream... Press 'Q' to Quit"
+    printfn "Subscribing to 0MQ ORDERS stream..." // "Press 'Q' to Quit"
     socket.Connect @"tcp://127.0.0.1:4567"
     socket.Subscribe("ORDERS", Encoding.Unicode)
 
@@ -40,7 +40,7 @@ let main argv =
     let stopwatch = Observable.Interval(TimeSpan.FromMilliseconds(aggregateFreqMsec), Scheduler.Default)
     use handle = stopwatch.Subscribe(fun _ -> EventStoreUpdater.Aggregate())
     consumeDataItem()
-    // Last chance aggregation before exit with a hope to restart
+    // Last chance aggregation before exit for the sake of restart
     EventStoreUpdater.Aggregate()
 
     0
