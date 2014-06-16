@@ -8,7 +8,7 @@
     <ProjectGuid>2eeae494-ca25-4c2c-aef2-d9fbef255d40</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>RedisDataStore</RootNamespace>
-    <AssemblyName>RedisDataStore</AssemblyName>
+    <AssemblyName>RedisEventStore.Command</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>RedisEventStore.Command</Name>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
@@ -23,7 +23,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Debug\RedisDataStore.XML</DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">

@@ -4,7 +4,7 @@ DEPLOYING RUNNING THE TEST SOLUTION:
 
 2. Open the solution property page -> Common Properties -> Startup Project, click Multiple startup projects radiobutton and make Start
    (or Start without debugging) selection from Action dropdown lists for the following projects:
-   Blurocket_TecTest, RedisDataStore, VegaDashboard, ViewHubHost; also make sure Dashboard.html is set as Startup page for VegaDashboard site
+   Blurocket_TecTest, RedisEventStore.Command, VegaDashboard, RedisEventStore.Query; also make sure Dashboard.html is set as Startup page for VegaDashboard site
    (VS keeps tidbits listed above in .suo Solution settings file that is excluded from Git tracking)
 
 3. Open folder 'redis' on Solution level hierarchy and fire up persistent store by double-clicking "redis-server.exe"; also it may make sense to
@@ -13,11 +13,9 @@ DEPLOYING RUNNING THE TEST SOLUTION:
 
 4. Start all components with VS Start
 
-5. Push any key in ViewHubHost.exe window to kick-off SignalR
+5. Activate Winform order stream simulator from Blurocket_TecTest and adjust data flow
 
-6. Activate Winform order stream simulator from Blurocket_TecTest and adjust data flow
-
-7. RedisDataStore.exe allows 2 start-up modes: 
+6. RedisDataStore.exe allows 2 start-up modes: 
    - no parameters or "forceFlush" given in command line resets data store state to be persisted by Redis
    - otherwise (any other string given in command line) it assumes restoring previously persisted state
 
@@ -26,3 +24,4 @@ free ServiceStack V3 is possible only via Package Manager Console using:
 PM> Install-Package ServiceStack.Text -Version 3.9.11
 PM> Install-Package ServiceStack.Common -Version 3.9.11
 PM> Install-Package ServiceStack.Redis -Version 3.9.11
+The solution captures this subtlety.
