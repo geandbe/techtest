@@ -53,6 +53,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "RedisEventStore.Command", "
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MiscUnitTests", "MiscUnitTests\MiscUnitTests.fsproj", "{009CC3D8-2A25-4178-A82E-C384BA2961AF}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "RedisEventStore.Query.FS", "RedisEventStore.Query.FS\RedisEventStore.Query.FS.fsproj", "{8A334DFE-EF6A-4731-86CC-7C91E2280456}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,10 @@ Global
 		{009CC3D8-2A25-4178-A82E-C384BA2961AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{009CC3D8-2A25-4178-A82E-C384BA2961AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{009CC3D8-2A25-4178-A82E-C384BA2961AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A334DFE-EF6A-4731-86CC-7C91E2280456}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A334DFE-EF6A-4731-86CC-7C91E2280456}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A334DFE-EF6A-4731-86CC-7C91E2280456}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A334DFE-EF6A-4731-86CC-7C91E2280456}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
