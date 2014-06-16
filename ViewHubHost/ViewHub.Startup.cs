@@ -1,6 +1,9 @@
 ﻿using Owin;
+using Microsoft.Owin;
+using Microsoft.Owin.Hosting;
 using Microsoft.Owin.Cors;
 
+[assembly: OwinStartup(typeof(ViewHubHost.Startup))]
 namespace ViewHubHost
 {
     public class Startup
